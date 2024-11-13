@@ -1,0 +1,226 @@
+"""
+Created on Mon Jan 21 15:47:10 2019
+
+@author: SeyonKugan
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+#importing data 
+time = np.loadtxt('Pylab-1-Oscillations.txt', skiprows=2, usecols=0)
+position = np.loadtxt('Pylab-1-Oscillations.txt', skiprows=2,usecols=1)
+dist_error = np.loadtxt('Pylab-1-Oscillations.txt', skiprows=2,usecols=2)
+
+# plotting the distance Vs Time for the mass
+plt.figure()
+plt.plot(time, position)
+plt.errorbar(time, position, xerr=0, yerr=dist_error, color='orange')
+plt.title('Time Vs. Distance (Data)')
+plt.xlabel('Time[s]')
+plt.ylabel('Distance[cm]')
+plt.show()
+
+#variables
+m = 0.2
+T = 5/7
+k = m/((T/(2*math.pi))**2)
+omega_0 = math.sqrt(k/m)
+delta_t = 0.01 
+
+# preallocating arrays 
+y = np.zeros(501)
+v = np.zeros(501) 
+
+#initial conditions 
+y[0] = 0.235
+v[0] = 0
+
+#using Euler method to model our spring-mass system 
+for i in range(1,501):
+    y[i] = y[i-1] + (v[i-1]*(delta_t))   
+    v[i] = v[i-1] - (delta_t*(omega_0**2))*y[i-1] 
+
+#v[i] = v[i-1] - (delta_t*(omega_0**2))*y[i] to get what we expect 
+
+plt.figure()
+plt.plot(time, y)
+plt.title('Time Vs. Distance (Euler Model Function)')
+plt.xlabel('Time[s]')
+plt.ylabel('Distance[m]')
+plt.show()
+
+#computing energy 
+E_e = 0.5*(m*(v**2)) + 0.5*(k*(y**2))
+print('energy total in Euler Model =', E_e)
+
+plt.figure()
+plt.plot(time, E_e)
+plt.title('Time Vs. Energy (Euler Model Function)')
+plt.errorbar(time, E_e, xerr=0, yerr=0.007738415)
+plt.xlabel('Time[s]')
+plt.ylabel('Energy[J]')
+plt.show()
+
+#using symplectic method to model our spring-mass system 
+#time stepping loop, 
+for i in range(1,501):
+    y[i] = y[i-1] + (v[i-1]*(delta_t))   
+    v[i] = v[i-1] - (delta_t*(omega_0**2))*y[i] 
+
+plt.figure()
+plt.plot(time, y)
+plt.xlabel('Time[s]')
+plt.ylabel('Distance[m]')
+plt.title('Time Vs. Distance (Symplectic Model Function)')
+plt.show()
+
+plt.figure()
+plt.plot(time, v)
+plt.title('Time Vs. Velocity (Symplectic Model Function)')
+plt.xlabel('Time[s]')
+plt.ylabel('Velocity[m/s]')
+plt.show() 
+
+plt.figure()
+plt.plot(position, v)
+plt.title('Distance Vs. Velocity (Symplectic Model Function)')
+plt.xlabel('Distance[m]')
+plt.ylabel('Velocity[m/s]')
+plt.show() 
+
+
+#computing energy 
+E_s = 0.5*(m*(v**2)) + 0.5*(k*(y**2))
+print('energy total in Symplectic Model =', E_s)
+
+#plotting energy vs. time
+plt.figure()
+plt.plot(time, E_s)
+plt.title('Time Vs. Energy (Symplectic Model Function)')
+plt.errorbar(time, E_s, xerr=0, yerr=0.007738415)
+plt.xlabel('Time[s]')
+plt.ylabel('Energy[J]')
+plt.show()
+
+#SECTION 2
+#computing Re number 
+rho = 1.225
+L = 0.0133 
+n = 1.81*(10**(-5))
+v1 = abs(v)
+
+Re = (rho*v1*L)/ n 
+print("Reynolds number is on average=", np.mean(Re))
+
+#compute gamma using A = (A_0)*(e**(-2/gamma))
+gamma = -2*(np.log((22.7668-22.1289)/(23.4594-22.1289))/112.83)
+print('decay constant=', gamma) 
+
+#importing data
+time_2 = np.loadtxt('Pylab-1-S2-Proper2.txt', skiprows=2, usecols=0)
+position_2 = np.loadtxt('Pylab-1-S2-Proper2.txt', skiprows=2, usecols=1)
+dist_error_2 = np.loadtxt('Pylab-1-S2-Proper2.txt', skiprows=2, usecols=2)  
+
+#variables
+m_2 = 0.2173
+T_2 = 5.29/7
+k_2 = m_2/((T_2/(2*math.pi))**2)
+omega_0_2 = math.sqrt(k_2/m_2)
+delta_t = 0.01 
+
+# preallocating arrays 
+y_2 = np.zeros(12304)
+v_2 = np.zeros(12304) 
+
+#initial conditions 
+y_2[0] = 0.21422
+v_2[0] = 0
+
+#using Euler method to model spring-mass system with disk attached
+for i in range(1,12304):
+    y_2[i] = y_2[i-1] + (v_2[i-1]*(delta_t))   
+    v_2[i] = -(((delta_t*gamma)- 1)*v_2[i-1] + (delta_t*(omega_0_2**2))*y_2[i-1])
+
+#v_2[i] = -(((delta_t*gamma)- 1)*v_2[i-1] + (delta_t*(omega_0_2**2))*y_2[i]) more realistic  
+
+plt.figure()
+plt.plot(time_2, y_2)
+plt.title('Time Vs. Distance (Euler Model Function)')
+plt.xlabel('Time[s]')
+plt.ylabel('Distance[m]')
+plt.show()
+
+plt.figure()
+plt.plot(time_2, v_2)
+plt.title('Time Vs. Velocity (Euler Model Function)')
+plt.xlabel('Time[s]')
+plt.ylabel('Velocity[m/s]')
+plt.show() 
+
+plt.figure()
+plt.plot(position_2, v_2)
+plt.title('Distance Vs. Velocity (Euler Model Function)')
+plt.xlabel('Distance[m]')
+plt.ylabel('Velocity[m/s]')
+plt.show() 
+
+#computing energy 
+E_e_2 = 0.5*(m_2*(v_2**2)) + 0.5*(k_2*(y_2**2))
+print('energy total in Euler Model =', E_e_2)
+
+plt.figure()
+plt.plot(time_2, E_e_2)
+plt.title('Time Vs. Energy (Euler Model Function)')
+plt.errorbar(time_2, E_e_2, xerr=0, yerr=0.006913371)
+plt.xlabel('Time[s]')
+plt.ylabel('Energy[J]')
+plt.show()
+
+#using symplectic method to model spring-mass system with disk attached
+for i in range(1,12304):
+    y_2[i] = y_2[i-1] + (v_2[i-1]*(delta_t))   
+    v_2[i] = -(((delta_t*gamma)- 1)*v_2[i-1] + (delta_t*(omega_0_2**2))*y_2[i])
+ 
+plt.figure()
+plt.plot(time_2, y_2)
+plt.title('Time Vs. Distance (Symplectic Model Function)')
+plt.xlabel('Time[s]')
+plt.ylabel('Distance[m]')
+plt.show()
+
+plt.figure()
+plt.plot(time_2, v_2)
+plt.title('Time Vs. Velocity (Symplectic Model Function)')
+plt.xlabel('Time[s]')
+plt.ylabel('Velocity[m/s]')
+plt.show() 
+
+plt.figure()
+plt.plot(position_2, v_2)
+plt.title('Distance Vs. Velocity (Symplectic Model Function)')
+plt.xlabel('Distance[m]')
+plt.ylabel('Velocity[m/s]')
+plt.show() 
+
+E_s_2 = 0.5*(m_2*(v_2**2)) + 0.5*(k_2*(y_2**2))
+print('energy total in Symplectic Model =', E_s_2)
+
+#plotting energy vs. time
+plt.figure()
+plt.plot(time_2, E_s_2)
+plt.title('Time Vs. Energy (Symplectic Model Function)')
+plt.errorbar(time_2, E_s_2, xerr=0, yerr=0.006913371)
+plt.xlabel('Time[s]')
+plt.ylabel('Energy[J]')
+plt.show()
+
+#plotting data from motion sensor
+#plotting the Distance Vs Time for the mass with disk attached 
+plt.figure()
+plt.plot(time_2, position_2)
+plt.errorbar(time_2, position_2, xerr=0, yerr=dist_error_2)
+plt.title('Time Vs. Distance (Data)')
+plt.xlabel('Time[s]')
+plt.ylabel('Distance[m]')
+plt.show()
